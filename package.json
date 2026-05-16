@@ -1,0 +1,14 @@
+{
+  "name": "retro-e2e",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:api": "playwright test tests/api/",
+    "test:ui": "playwright test tests/ui/",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "dotenv": "^16.4.0"
+  }
+}
