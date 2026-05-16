@@ -27,23 +27,27 @@ export async function createTeam(token: string, name: string): Promise<{ id: str
   if (!response.ok) {
     throw new Error(`Create team failed: ${response.status} ${await response.text()}`);
   }
-  return response.json();
+  const location = response.headers.get('Location');
+  const id = location?.split('/').pop() || '';
+  return { id, name };
 }
 
 export async function createRetro(
   token: string,
   teamId: string,
-  templateId: string = 'happy-sad-confused'
+  templateId: string = 'happy-confused-sad.yml'
 ): Promise<{ id: string }> {
   const response = await apiRequest(`/api/teams/${teamId}/retros`, {
     method: 'POST',
-    body: { templateId },
+    body: { retroTemplateId: templateId },
     token,
   });
   if (!response.ok) {
     throw new Error(`Create retro failed: ${response.status} ${await response.text()}`);
   }
-  return response.json();
+  const location = response.headers.get('Location');
+  const id = location?.split('/').pop() || '';
+  return { id };
 }
 
 export async function deleteTeam(token: string, teamId: string): Promise<void> {

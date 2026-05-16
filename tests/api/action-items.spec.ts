@@ -27,13 +27,12 @@ test('create and complete action item', async () => {
     token,
   });
   expect(createResponse.status).toBe(201);
-  const actionItem = await createResponse.json();
-  expect(actionItem.action).toBe('E2E test action');
-  expect(actionItem.completed).toBe(false);
+  const location = createResponse.headers.get('Location')!;
+  const actionItemId = location.split('/').pop();
 
   const completeResponse = await apiRequest(
-    `/api/teams/${teamId}/action-items/${actionItem.id}/complete`,
-    { method: 'PUT', token }
+    `/api/teams/${teamId}/action-items/${actionItemId}/completed`,
+    { method: 'PUT', body: { completed: true }, token }
   );
-  expect(completeResponse.status).toBe(200);
+  expect(completeResponse.status).toBe(204);
 });

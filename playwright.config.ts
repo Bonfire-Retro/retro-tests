@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export default defineConfig({
+  globalSetup: './tests/global-setup.ts',
   testDir: './tests',
   timeout: 30_000,
   retries: 0,

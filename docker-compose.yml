@@ -21,9 +21,9 @@ services:
       - "${KEYCLOAK_PORT:-8010}:8080"
     volumes:
       - ../retro-api/keycloak-realm-data:/opt/keycloak/data/import
-    command: start-dev --import-realm
+    command: start-dev --import-realm --health-enabled=true
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && cat <&3 | grep -q 200"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q 'UP'"]
       interval: 5s
       retries: 30
 
@@ -41,19 +41,15 @@ services:
     ports:
       - "${API_PORT:-8080}:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: docker,native
+      SPRING_PROFILES_ACTIVE: docker
     depends_on:
       db: { condition: service_healthy }
       auth-server: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
-      interval: 3s
-      retries: 20
 
   ui:
     image: ${RETRO_UI_IMAGE:-ghcr.io/lowbudgetman/retro-ui:latest}
     ports:
       - "${UI_PORT:-3000}:80"
     depends_on:
-      api: { condition: service_healthy }
+      - api

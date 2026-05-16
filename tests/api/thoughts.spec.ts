@@ -30,8 +30,8 @@ test('add thought to retro', async () => {
     token,
   });
   expect(response.status).toBe(201);
-  const thought = await response.json();
-  expect(thought.message).toBe('E2E test thought');
+  const location = response.headers.get('Location');
+  expect(location).toContain('/thoughts/');
 });
 
 test('vote on a thought', async () => {
@@ -40,11 +40,12 @@ test('vote on a thought', async () => {
     body: { message: 'Voteable thought', category: 'sad' },
     token,
   });
-  const thought = await createResponse.json();
+  const location = createResponse.headers.get('Location')!;
+  const thoughtId = location.split('/').pop();
 
   const voteResponse = await apiRequest(
-    `/api/teams/${teamId}/retros/${retroId}/thoughts/${thought.id}/vote`,
+    `/api/teams/${teamId}/retros/${retroId}/thoughts/${thoughtId}/votes`,
     { method: 'PUT', token }
   );
-  expect(voteResponse.status).toBe(200);
+  expect(voteResponse.status).toBe(204);
 });

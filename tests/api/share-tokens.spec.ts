@@ -25,13 +25,16 @@ test.afterAll(async () => {
 
 test('generate and use share token', async () => {
   const createResponse = await apiRequest(
-    `/api/teams/${teamId}/retros/${retroId}/share-token`,
+    `/api/teams/${teamId}/retros/${retroId}/share-tokens`,
     { method: 'POST', token }
   );
-  expect(createResponse.status).toBe(200);
-  const { token: shareToken } = await createResponse.json();
-  expect(shareToken).toBeTruthy();
+  expect(createResponse.status).toBe(201);
+  const shareToken = await createResponse.json();
+  expect(shareToken.token).toBeTruthy();
 
-  const shareResponse = await apiRequest(`/api/share/${shareToken}`);
+  const shareResponse = await apiRequest(`/api/share/${shareToken.token}`);
   expect(shareResponse.status).toBe(200);
+  const shareData = await shareResponse.json();
+  expect(shareData.teamId).toBeTruthy();
+  expect(shareData.retroId).toBe(retroId);
 });
