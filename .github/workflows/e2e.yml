@@ -1,0 +1,153 @@
+name: E2E Tests
+on:
+  workflow_dispatch:
+    inputs:
+      api_image:
+        description: 'API image to test (leave empty to build from source)'
+        required: false
+        type: string
+
+jobs:
+  build-images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: cache gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build JVM image
+        working-directory: retro-api
+        run: ./gradlew bootBuildImage --imageName retro-api:jvm
+
+      - name: Build native image
+        working-directory: retro-api
+        run: ./gradlew bootBuildImage -PbuildNative --imageName retro-api:native
+
+      - name: Save images
+        run: |
+          docker save retro-api:jvm retro-api:native -o /tmp/retro-api-images.tar
+
+      - name: Upload images
+        uses: actions/upload-artifact@v4
+        with:
+          name: retro-api-images
+          path: /tmp/retro-api-images.tar
+          retention-days: 1
+
+  e2e-jvm:
+    runs-on: ubuntu-latest
+    needs: build-images
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download images
+        uses: actions/download-artifact@v4
+        with:
+          name: retro-api-images
+          path: /tmp
+
+      - name: Load images
+        run: docker load -i /tmp/retro-api-images.tar
+
+      - name: Start E2E stack
+        working-directory: e2e
+        run: RETRO_API_IMAGE=retro-api:jvm docker compose up -d --wait --wait-timeout 120
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        working-directory: e2e
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        working-directory: e2e
+        run: npx playwright test
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report-jvm
+          path: e2e/playwright-report/
+
+      - name: Dump logs on failure
+        if: failure()
+        working-directory: e2e
+        run: docker compose logs
+
+      - name: Tear down
+        if: always()
+        working-directory: e2e
+        run: docker compose down -v
+
+  e2e-native:
+    runs-on: ubuntu-latest
+    needs: build-images
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download images
+        uses: actions/download-artifact@v4
+        with:
+          name: retro-api-images
+          path: /tmp
+
+      - name: Load images
+        run: docker load -i /tmp/retro-api-images.tar
+
+      - name: Start E2E stack
+        working-directory: e2e
+        run: RETRO_API_IMAGE=retro-api:native docker compose up -d --wait --wait-timeout 120
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        working-directory: e2e
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        working-directory: e2e
+        run: npx playwright test
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report-native
+          path: e2e/playwright-report/
+
+      - name: Dump logs on failure
+        if: failure()
+        working-directory: e2e
+        run: docker compose logs
+
+      - name: Tear down
+        if: always()
+        working-directory: e2e
+        run: docker compose down -v
