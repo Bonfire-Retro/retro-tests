@@ -51,5 +51,7 @@ services:
     image: ${RETRO_UI_IMAGE:-ghcr.io/lowbudgetman/retro-ui:latest}
     ports:
       - "${UI_PORT:-3000}:80"
+    environment:
+      BASE_API_URL: "http://localhost:${API_PORT:-8080}"
     depends_on:
       - api

@@ -36,6 +36,7 @@ test('two users see each other\'s thoughts in real time', async ({ browser }) =>
 
   // Login user 1
   await page1.goto('/');
+  await page1.click('button:has-text("Login")');
   await page1.fill('input[name="username"], input[id="username"]', user1.username);
   await page1.fill('input[name="password"], input[id="password"]', user1.password);
   await page1.click('input[type="submit"], button[type="submit"]');
@@ -43,6 +44,7 @@ test('two users see each other\'s thoughts in real time', async ({ browser }) =>
 
   // Login user 2
   await page2.goto('/');
+  await page2.click('button:has-text("Login")');
   await page2.fill('input[name="username"], input[id="username"]', user2.username);
   await page2.fill('input[name="password"], input[id="password"]', user2.password);
   await page2.click('input[type="submit"], button[type="submit"]');

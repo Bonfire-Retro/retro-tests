@@ -16,6 +16,9 @@ test.afterAll(async () => {
 test('redirects to auth provider and back after login', async ({ page }) => {
   await page.goto('/');
 
+  // Click Login button on the landing page
+  await page.click('button:has-text("Login")');
+
   // Should redirect to auth provider login page
   await expect(page).toHaveURL(/.*realms.*|.*authorize.*|.*login.*/);
 

@@ -13,7 +13,6 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  // Clean up any teams created during tests
   const response = await apiRequest('/api/teams', { token });
   const teams = await response.json();
   for (const team of teams) {
@@ -24,23 +23,21 @@ test.afterAll(async () => {
   await auth.deleteTestUser(testUser.username);
 });
 
-test('create a team from the UI', async ({ page, context }) => {
-  // Inject auth token via API to skip OIDC redirect for faster tests
-  const configResponse = await fetch(`${process.env.API_BASE_URL || 'http://localhost:8080'}/api/configuration`);
-  const config = await configResponse.json();
-
-  // Set storage state to simulate logged-in user
-  // This test needs to go through the login flow to get proper session
+test('create a team from the UI', async ({ page }) => {
   await page.goto('/');
+  await page.click('button:has-text("Login")');
   await page.fill('input[name="username"], input[id="username"]', testUser.username);
   await page.fill('input[name="password"], input[id="password"]', testUser.password);
   await page.click('input[type="submit"], button[type="submit"]');
   await page.waitForURL(/.*localhost.*/);
 
-  // Now create a team
+  // Click the + card to open the create team dialog
+  await page.getByText('+').click();
+
+  // Fill in team name and confirm
   const teamName = `E2E UI Team ${Date.now()}`;
-  await page.getByRole('textbox', { name: /team/i }).fill(teamName);
-  await page.getByRole('button', { name: /create/i }).click();
+  await page.getByPlaceholder('Team name').fill(teamName);
+  await page.getByRole('button', { name: 'Confirm' }).click();
 
   // Verify team appears
   await expect(page.getByText(teamName)).toBeVisible();

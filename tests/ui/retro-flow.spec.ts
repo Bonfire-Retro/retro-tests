@@ -23,19 +23,28 @@ test.afterAll(async () => {
 test('full retro flow: create, add thoughts, vote', async ({ page }) => {
   // Login
   await page.goto('/');
+  await page.click('button:has-text("Login")');
   await page.fill('input[name="username"], input[id="username"]', testUser.username);
   await page.fill('input[name="password"], input[id="password"]', testUser.password);
   await page.click('input[type="submit"], button[type="submit"]');
   await page.waitForURL(/.*localhost.*/);
 
   // Navigate to team
-  await page.getByText(`E2E Retro Flow`).first().click();
+  await page.getByText('E2E Retro Flow').first().click();
+  await page.waitForTimeout(1000);
 
-  // Create a retro
-  await page.getByRole('button', { name: /retro|new/i }).click();
+  // Click + to open template picker, then select Happy, Confused, Sad
+  await page.getByText('+').click();
+  await page.getByRole('button', { name: 'Use this template' }).first().click();
 
-  // Add a thought
-  await page.getByRole('textbox').first().fill('This went well');
+  // Retro was created — click on it to enter
+  await page.getByRole('link', { name: /Happy, Confused, Sad/ }).click();
+
+  // Should be on the retro page with thought columns
+  await expect(page.getByPlaceholder('Add a thought...')).toHaveCount(3);
+
+  // Add a thought to the Happy column
+  await page.getByPlaceholder('Add a thought...').first().fill('This went well');
   await page.keyboard.press('Enter');
-  await expect(page.getByText('This went well')).toBeVisible();
+  await expect(page.getByText('This went well')).toBeVisible({ timeout: 10000 });
 });

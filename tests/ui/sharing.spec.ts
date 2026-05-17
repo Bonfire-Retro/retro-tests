@@ -26,7 +26,7 @@ test.afterAll(async () => {
 test('anonymous user can access retro via share link', async ({ page, context }) => {
   // Generate share token via API
   const createResponse = await apiRequest(
-    `/api/teams/${teamId}/retros/${retroId}/share-token`,
+    `/api/teams/${teamId}/retros/${retroId}/share-tokens`,
     { method: 'POST', token }
   );
   const { token: shareToken } = await createResponse.json();
