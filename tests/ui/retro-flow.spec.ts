@@ -43,8 +43,15 @@ test('full retro flow: create, add thoughts, vote', async ({ page }) => {
   // Should be on the retro page with thought columns
   await expect(page.getByPlaceholder('Add a thought...')).toHaveCount(3);
 
+  // Wait for WebSocket connection to establish
+  await page.waitForTimeout(2000);
+
   // Add a thought to the Happy column
-  await page.getByPlaceholder('Add a thought...').first().fill('This went well');
-  await page.keyboard.press('Enter');
+  const input = page.getByPlaceholder('Add a thought...').first();
+  await input.fill('This went well');
+  await input.press('Enter');
+
+  // Input clears on successful API call, then WebSocket delivers the thought
+  await expect(input).toHaveValue('', { timeout: 5000 });
   await expect(page.getByText('This went well')).toBeVisible({ timeout: 10000 });
 });

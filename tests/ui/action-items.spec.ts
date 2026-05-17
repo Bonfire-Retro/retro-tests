@@ -35,11 +35,14 @@ test('create and complete action item from UI', async ({ page }) => {
   await page.getByText('E2E Actions').first().click();
   await page.getByRole('link', { name: /Happy, Confused, Sad/ }).click();
 
+  // Wait for WebSocket connection to establish
+  await page.waitForTimeout(2000);
+
   // Fill in an action item in the right panel
   await page.getByPlaceholder('Enter Action Item').fill('Fix the build');
   await page.getByPlaceholder('Enter Assignee').fill('tester');
   await page.getByRole('button', { name: 'Add' }).click();
 
-  // Verify the action item appears
-  await expect(page.getByText('Fix the build')).toBeVisible();
+  // Verify the action item appears (delivered via WebSocket)
+  await expect(page.getByText('Fix the build')).toBeVisible({ timeout: 10000 });
 });
