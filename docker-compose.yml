@@ -11,7 +11,7 @@ services:
       retries: 10
 
   auth-server:
-    image: quay.io/keycloak/keycloak:26.6.0
+    image: ghcr.io/lowbudgetman/retro-keycloak:latest
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
@@ -19,8 +19,6 @@ services:
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
     ports:
       - "${KEYCLOAK_PORT:-8010}:8080"
-    volumes:
-      - ../retro-api/keycloak-realm-data:/opt/keycloak/data/import
     command: start-dev --import-realm --health-enabled=true
     healthcheck:
       test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q 'UP'"]
@@ -28,9 +26,7 @@ services:
       retries: 30
 
   rabbitmq:
-    build:
-      context: ../retro-api
-      dockerfile: RabbitMqDockerfile
+    image: ghcr.io/lowbudgetman/retro-rabbitmq:latest
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 5s
