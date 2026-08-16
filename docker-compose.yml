@@ -11,7 +11,7 @@ services:
       retries: 10
 
   auth-server:
-    image: ghcr.io/lowbudgetman/retro-keycloak:latest
+    image: ghcr.io/bonfire-retro/retro-keycloak:latest
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
@@ -26,7 +26,7 @@ services:
       retries: 30
 
   rabbitmq:
-    image: ghcr.io/lowbudgetman/retro-rabbitmq:latest
+    image: ghcr.io/bonfire-retro/retro-rabbitmq:latest
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 5s
@@ -44,7 +44,7 @@ services:
       rabbitmq: { condition: service_healthy }
 
   ui:
-    image: ${RETRO_UI_IMAGE:-ghcr.io/lowbudgetman/retro-ui:latest}
+    image: ${RETRO_UI_IMAGE:-ghcr.io/bonfire-retro/retro-ui:latest}
     ports:
       - "${UI_PORT:-3000}:80"
     environment:
